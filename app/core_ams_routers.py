@@ -6,6 +6,10 @@ bp = Blueprint('routes', __name__)
 
 from flask import Blueprint, request, jsonify
 
+@bp.route('/', methods=['GET'])
+def index():
+    return jsonify(message="index"), 200
+
 @bp.route('/products', methods=['GET'])
 def get_products():
     products = Product.query.all()

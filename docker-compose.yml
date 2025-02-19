@@ -17,6 +17,8 @@ services:
     environment:
       - FLASK_APP=run.py
       - FLASK_ENV=development
+      - SQLALCHEMY_DATABASE_URI=postgresql://postgres:password@db:5432/ecommerce
+      - JWT_SECRET_KEY=secretkey123  # Replace with a secure key
     depends_on:
       - db
     ports:
