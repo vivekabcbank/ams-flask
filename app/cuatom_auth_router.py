@@ -5,50 +5,60 @@ from flask_jwt_extended import create_access_token, jwt_required
 from flask_restx import Resource
 from . import app, api
 from flask import make_response
+from .cuatom_auth_serializers import *
+from marshmallow import ValidationError
+from pdb import set_trace
+from sqlalchemy import func, or_
 
 
 @api.route('/signup-user/', methods=['POST'])
 class UserSignUpView(Resource):
     def post(self):
         data = request.get_json()
-        username = data.get('username')
-        email = data.get('email')
-        password = data.get('password')
+        user_serializer = ValidateUserDetailsSerializer()
 
-        if not username or not email or not password:
-            return make_response(jsonify({"msg": "Missing fields"}), 400)
+        try:
+            user_data = user_serializer.load(data)
+            new_user = User(
+                company_name=user_data.get("company_name"),
+                username=user_data.get("username"),
+                email=user_data.get("email"),
+                first_name=user_data.get("first_name"),
+                last_name=user_data.get("last_name"),
+                gender=user_data.get("gender"),
+                dob=user_data.get("dob"),
+                calling_code=user_data.get("calling_code"),
+                phone=user_data.get("phone"),
+                address=user_data.get("address"),
+                pincode=user_data.get("pincode"),
+                country=user_data.get("country"),
+                state=user_data.get("state"),
+                city=user_data.get("city"),
+                usertype_id=user_data.get("usertype_id")
+                # usertype=usertype => like this we can connect usertype instance
+            )
+            new_user.set_password(user_data.get("password"))
+            db.session.add(new_user)
+            db.session.commit()
 
-        existing_user = User.query.filter_by(username=username).first()
-        if existing_user:
-            return make_response(jsonify({"msg": "User already exists"}), 400)
+        except ValidationError as err:
+            return make_response(jsonify({"error": err.messages}), 400)
 
-        new_user = User(username=username, email=email)
-        new_user.set_password(password)
-
-        db.session.add(new_user)
-        db.session.commit()
-
-        return make_response(jsonify({"msg": "User created successfully"}), 201)
+        return make_response(jsonify(user_data), 200)
 
 
 @api.route('/signin-user/', methods=['POST'])
 class UserSigninView(Resource):
     def post(self):
-
         data = request.get_json()
-        username = data.get('username')
-        password = data.get('password')
+        user_serializer = ValidateLoginUserSerializer()
+        try:
+            user_data = user_serializer.load(data)
+            user = user_data["user"]
+            access_token = create_access_token(identity=str(user.id))
+        except ValidationError as err:
+            return make_response(jsonify({"error": err.messages}), 400)
 
-        if not username or not password:
-            return make_response(jsonify({"msg": "Missing fields"}), 400)
-
-        user = User.query.filter_by(username=username).first()
-
-        if not user or not user.check_password(password):
-            return make_response(jsonify({"msg": "Invalid credentials"}), 401)
-
-        # Create access token
-        access_token = create_access_token(identity=str(user.id))
         return make_response(jsonify(access_token=access_token), 200)
 
 

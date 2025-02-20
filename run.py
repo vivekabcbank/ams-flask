@@ -2,7 +2,7 @@ from app import create_app, db
 from flask_jwt_extended import JWTManager
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
-from app.models import *
+from app.models import Product, UserType, Country, State, City, User, Site, Employee, Attendance, Leave
 
 app = create_app()
 

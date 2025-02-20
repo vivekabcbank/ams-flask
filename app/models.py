@@ -4,26 +4,29 @@ from datetime import datetime
 
 bcrypt = Bcrypt()
 
+
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.String(200), nullable=False)
-    price = db.Column(db.Float, nullable=False)
+    name = db.Column(db.String(100), nullable=True)
+    description = db.Column(db.String(200), nullable=True)
+    price = db.Column(db.Float, nullable=True)
 
     def __repr__(self):
         return f"<Product {self.name}>"
 
+
 class UserType(db.Model):
     __tablename__ = 'usertype'  # Equivalent to db_table in Django
     id = db.Column(db.Integer, primary_key=True)  # You need a primary key
-    typename = db.Column(db.String(200), nullable=False)  # Equivalent to CharField(max_length=200)
+    typename = db.Column(db.String(200), nullable=True)  # Equivalent to CharField(max_length=200)
     description = db.Column(db.Text, nullable=True)  # Equivalent to TextField
     isdeleted = db.Column(db.Boolean, default=False)  # Equivalent to BooleanField(default=False)
-    createddate = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)  # Equivalent to DateTimeField(default=timezone.now)
+    createddate = db.Column(db.DateTime, default=datetime.utcnow,nullable=False)  # Equivalent to DateTimeField(default=timezone.now)
     updateddate = db.Column(db.DateTime, nullable=True)  # Equivalent to DateTimeField(null=True)
 
     def __str__(self):
         return f"{self.typename}"
+
 
 class Country(db.Model):
     __tablename__ = 'country'
@@ -39,11 +42,12 @@ class Country(db.Model):
     def __str__(self):
         return f"{self.countryname}"
 
+
 class State(db.Model):
     __tablename__ = 'state'
 
     id = db.Column(db.Integer, primary_key=True)  # Primary key
-    countryid = db.Column(db.Integer, db.ForeignKey('country.id'), nullable=False)  # ForeignKey to Country
+    countryid = db.Column(db.Integer, db.ForeignKey('country.id'), nullable=True)  # ForeignKey to Country
     statename = db.Column(db.String(200))
     isdeleted = db.Column(db.Boolean, default=False)
     createddate = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
@@ -55,11 +59,12 @@ class State(db.Model):
     def __str__(self):
         return f"{self.statename}"
 
+
 class City(db.Model):
     __tablename__ = 'city'
 
     id = db.Column(db.Integer, primary_key=True)  # Primary key
-    stateid = db.Column(db.Integer, db.ForeignKey('state.id'), nullable=False)  # ForeignKey to State
+    stateid = db.Column(db.Integer, db.ForeignKey('state.id'), nullable=True)  # ForeignKey to State
     cityname = db.Column(db.String(200))
     isdeleted = db.Column(db.Boolean, default=False)
     createddate = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
@@ -71,19 +76,22 @@ class City(db.Model):
     def __str__(self):
         return f"{self.cityname}"
 
+
 class User(db.Model):
     __tablename__ = 'auth_user'  # Defining table name (equivalent to Meta db_table)
 
     id = db.Column(db.Integer, primary_key=True)  # Primary key field (auto-generated in Django)
-    company_name = db.Column(db.String(250), default="")
-    username = db.Column(db.String(120), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
+    company_name = db.Column(db.String(250))
+    first_name = db.Column(db.String(250))
+    last_name = db.Column(db.String(250))
+    username = db.Column(db.String(120), unique=True, nullable=True)
+    email = db.Column(db.String(120), unique=True, nullable=True)
+    password_hash = db.Column(db.String(128), nullable=True)
     usertype_id = db.Column(db.Integer, db.ForeignKey('usertype.id'), nullable=True)  # Foreign Key to UserType
     image = db.Column(db.Text, default='', nullable=True)
     gender = db.Column(db.String(1), nullable=True)
     dob = db.Column(db.Date, nullable=True)
-    calling_code = db.Column(db.String(10), default='', nullable=True)
+    calling_code = db.Column(db.String(10), nullable=True)
     phone = db.Column(db.String(20), default='', nullable=True)
     address = db.Column(db.Text, default='', nullable=True)
     pincode = db.Column(db.String(20), default='', nullable=True)
@@ -119,6 +127,7 @@ class User(db.Model):
     def __str__(self):
         return f"{self.username}"
 
+
 class Site(db.Model):
     __tablename__ = 'site'  # Define the table name
 
@@ -141,6 +150,7 @@ class Site(db.Model):
     def __str__(self):
         return self.sitename
 
+
 class Employee(db.Model):
     __tablename__ = 'employee'
 
@@ -162,6 +172,7 @@ class Employee(db.Model):
     def __str__(self):
         return f"{self.user.username}"
 
+
 class Attendance(db.Model):
     __tablename__ = 'attendance'
 
@@ -180,6 +191,7 @@ class Attendance(db.Model):
 
     def __str__(self):
         return f"{self.employee}"
+
 
 class Leave(db.Model):
     __tablename__ = 'leave'
@@ -200,4 +212,3 @@ class Leave(db.Model):
 
     def __str__(self):
         return f"{self.employee.id}"
-
