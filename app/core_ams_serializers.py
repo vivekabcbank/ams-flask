@@ -1,9 +1,6 @@
-from idlelib.iomenu import errors
-
 from marshmallow import Schema, fields, validate, post_load, ValidationError, EXCLUDE
 from .allfunctions import *
 from . import db
-from sqlalchemy import func, or_
 from .models import UserType, Site, Employee, Country, City, State, User
 from sqlalchemy.orm import joinedload
 
