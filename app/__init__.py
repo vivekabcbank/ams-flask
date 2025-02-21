@@ -2,6 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from .config import Config
 from flask_restx import Api
+from flask import jsonify
 
 # Initialize SQLAlchemy
 db = SQLAlchemy()
@@ -44,3 +45,8 @@ def create_app():
     app.register_blueprint(auth, url_prefix='/auth')
 
     return app
+
+
+@app.route('/index2/', methods=['GET'])
+def index2():
+    return jsonify(message="index2"), 200

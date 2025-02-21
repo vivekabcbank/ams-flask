@@ -5,16 +5,6 @@ from datetime import datetime
 bcrypt = Bcrypt()
 
 
-class Product(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=True)
-    description = db.Column(db.String(200), nullable=True)
-    price = db.Column(db.Float, nullable=True)
-
-    def __repr__(self):
-        return f"<Product {self.name}>"
-
-
 class UserType(db.Model):
     __tablename__ = 'usertype'  # Equivalent to db_table in Django
     id = db.Column(db.Integer, primary_key=True)  # You need a primary key
@@ -141,6 +131,7 @@ class Site(db.Model):
     latitude = db.Column(db.String(20), default='', nullable=True)
     longitude = db.Column(db.String(20), default='', nullable=True)
     isdeleted = db.Column(db.Boolean, default=False)
+    is_superuser = db.Column(db.Boolean, default=False)
     createddate = db.Column(db.DateTime, default=datetime.utcnow)
     updateddate = db.Column(db.DateTime, nullable=True)
 

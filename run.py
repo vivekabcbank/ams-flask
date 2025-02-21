@@ -2,7 +2,7 @@ from app import create_app, db
 from flask_jwt_extended import JWTManager
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
-from app.models import Product, UserType, Country, State, City, User, Site, Employee, Attendance, Leave
+from app.models import  UserType, Country, State, City, User, Site, Employee, Attendance, Leave
 
 app = create_app()
 
@@ -16,7 +16,6 @@ def create_tables():
 
 admin = Admin(app, name='Admin Panel', template_mode='bootstrap3')
 
-admin.add_view(ModelView(Product, db.session))
 admin.add_view(ModelView(UserType, db.session))
 admin.add_view(ModelView(Country, db.session))
 admin.add_view(ModelView(State, db.session))

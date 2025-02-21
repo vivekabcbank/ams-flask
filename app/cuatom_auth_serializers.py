@@ -1,8 +1,41 @@
-from marshmallow import Schema, fields, validate, post_load, ValidationError
+from marshmallow import Schema, fields, validate, post_load, ValidationError, EXCLUDE
 from .allfunctions import *
 from .models import User
 from . import db
 from sqlalchemy import func, or_
+from pdb import set_trace
+
+
+class CheckAdminUserIdentitySerializer(Schema):
+    userauth = fields.String(required=True,validate=validate.Length(min=1))
+
+    class Meta:
+        unknown = EXCLUDE
+
+    @post_load
+    def process_data(self, data, **kwargs):
+        errors = {}
+        data["userauth"] = userauth = int(decode_id(data.get("userauth")))
+        try:
+            user = db.session.query(User).filter(
+                or_(
+                    User.usertype_id == User_Type_id.ADMIN.value,
+                    # User.is_superuser == True
+                ),
+                User.id == userauth,
+                User.isdeleted == False
+            ).first()
+
+            if not user:
+                errors["userauth"] = "Admin Identity doesn't valid1."
+        except Exception as e:
+            errors["userauth"] = "Admin Identity doesn't valid2."
+
+        if errors:
+            raise ValidationError(errors)
+
+        return data
+
 
 class ValidateUserDetailsSerializer(Schema):
     company_name = fields.String(required=True)

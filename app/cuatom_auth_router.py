@@ -1,14 +1,10 @@
-from . import db
 from flask import Blueprint, request, jsonify
-from .models import User
 from flask_jwt_extended import create_access_token, jwt_required
 from flask_restx import Resource
 from . import app, api
 from flask import make_response
 from .cuatom_auth_serializers import *
 from marshmallow import ValidationError
-from pdb import set_trace
-from sqlalchemy import func, or_
 
 
 @api.route('/signup-user/', methods=['POST'])
