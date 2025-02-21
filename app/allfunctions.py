@@ -47,3 +47,8 @@ def get_json_errors(error_list_data):
         __field_errors[key] = error_list
 
     return __field_errors
+
+def encode_str(text):
+    string = str(text)
+    encode = base64.b64encode(string.encode('ascii'))
+    return str(encode.decode('ascii'))

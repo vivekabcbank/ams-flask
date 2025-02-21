@@ -3,11 +3,10 @@ from .allfunctions import *
 from .models import User
 from . import db
 from sqlalchemy import func, or_
-from pdb import set_trace
 
 
 class CheckAdminUserIdentitySerializer(Schema):
-    userauth = fields.String(required=True,validate=validate.Length(min=1))
+    userauth = fields.String(required=True, validate=validate.Length(min=1))
 
     class Meta:
         unknown = EXCLUDE
@@ -15,12 +14,12 @@ class CheckAdminUserIdentitySerializer(Schema):
     @post_load
     def process_data(self, data, **kwargs):
         errors = {}
-        data["userauth"] = userauth = int(decode_id(data.get("userauth")))
         try:
+            data["userauth"] = userauth = int(decode_id(data.get("userauth")))
             user = db.session.query(User).filter(
                 or_(
                     User.usertype_id == User_Type_id.ADMIN.value,
-                    # User.is_superuser == True
+                    User.is_superuser == True
                 ),
                 User.id == userauth,
                 User.isdeleted == False
@@ -38,26 +37,29 @@ class CheckAdminUserIdentitySerializer(Schema):
 
 
 class ValidateUserDetailsSerializer(Schema):
-    company_name = fields.String(required=True)
-    first_name = fields.String(required=True)
-    last_name = fields.String(required=True)
+    company_name = fields.String(required=True, validate=validate.Length(min=1))
+    first_name = fields.String(required=True, validate=validate.Length(min=1))
+    last_name = fields.String(required=True, validate=validate.Length(min=1))
     email = fields.Email(required=False)
-    usertype_id = fields.String(required=True)
+    usertype_id = fields.String(required=True, validate=validate.Length(min=1))
     gender = fields.String(validate=validate.OneOf(['M', 'F', 'O']))
     dob = fields.Date(required=False)
-    calling_code = fields.String(required=True)
+    calling_code = fields.String(required=True, validate=validate.Length(min=1))
     phone = fields.String(validate=validate.Length(min=10, max=15), required=True)
-    address = fields.String(required=True)
-    pincode = fields.String(required=True)
-    country = fields.String(required=True)
-    state = fields.String(required=True)
-    city = fields.String(required=True)
-    password = fields.String(required=True)
+    address = fields.String(required=True, validate=validate.Length(min=1))
+    pincode = fields.String(required=True, validate=validate.Length(min=1))
+    country = fields.String(required=True, validate=validate.Length(min=1))
+    state = fields.String(required=True, validate=validate.Length(min=1))
+    city = fields.String(required=True, validate=validate.Length(min=1))
+    password = fields.String(required=True, validate=validate.Length(min=1))
+
+    class Meta:
+        unknown = EXCLUDE
 
     @post_load
     def process_email(self, data, **kwargs):
         email = data.get('email')
-        existing_user = User.query.filter_by(isdeleted= False,
+        existing_user = User.query.filter_by(isdeleted=False,
                                              email=email).first()
         if existing_user:
             raise ValidationError(f'Email {email} is already in use.')
@@ -65,27 +67,41 @@ class ValidateUserDetailsSerializer(Schema):
 
     @post_load
     def process_data(self, data, **kwargs):
-        data["usertype_id"] = int(decode_id(data.get("usertype_id")))
+        errors = {}
+
         calling_code = data.get('calling_code')
         phone = data.get('phone')
         first_name = data.get('first_name')
         last_name = data.get('last_name')
         data['username'] = set_username(first_name, last_name)
-        existing_user = User.query.filter_by(isdeleted= False,
+
+        try:
+            data["usertype_id"] = int(decode_id(data.get("usertype_id")))
+        except Exception as e:
+            errors["usertype_id"] = "Invalid usertype_id"
+
+        existing_user = User.query.filter_by(isdeleted=False,
                                              calling_code=calling_code,
                                              phone=phone
                                              ).first()
         if existing_user:
-            raise ValidationError(f'Phone {calling_code}{phone} is already in use.')
+            errors["invalid_phone"] = f'Phone {calling_code}{phone} is already in use.'
+
+        if errors:
+            raise ValidationError(errors)
         return data
 
 
 class ValidateLoginUserSerializer(Schema):
-    username = fields.String(required=True)
-    password = fields.String(required=True)
+    username = fields.String(required=True, validate=validate.Length(min=1))
+    password = fields.String(required=True, validate=validate.Length(min=1))
+
+    class Meta:
+        unknown = EXCLUDE
 
     @post_load
     def process_data(self, data, **kwargs):
+        errors = {}
         username = data.get('username')
         password = data.get('password')
 
@@ -96,9 +112,13 @@ class ValidateLoginUserSerializer(Schema):
             ),
             User.isdeleted == False
         ).first()
+
         data["user"] = user
 
         if not user or not user.check_password(password):
-            raise ValidationError('Invalid credentials')
+            errors["invalid credentials"] = "Invalid credentials"
+
+        if errors:
+            raise ValidationError(errors)
 
         return data

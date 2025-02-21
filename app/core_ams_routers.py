@@ -20,8 +20,16 @@ def index():
 class InsertUserTypeView(Resource):
     @jwt_required()
     def post(self):
+        all_errors = {}
         data = request.get_json()
+        auth_serializer = CheckAdminUserIdentitySerializer()
         user_serializer = ValidateInsertUsertypeSerializer()
+
+        try:
+            auth_data = auth_serializer.load(data)
+        except ValidationError as err:
+            all_errors.update({"auth_errors": err.messages})
+
         try:
             user_type_data = user_serializer.load(data)
             new_user_type = UserType(
@@ -34,6 +42,9 @@ class InsertUserTypeView(Resource):
         except ValidationError as err:
             return make_response(jsonify({"error": err.messages}), 400)
 
+        if all_errors:
+            return make_response(jsonify({"errors": all_errors}), 400)
+
         return make_response(jsonify({"message": "User type added successfully"}), 200)
 
 
@@ -43,7 +54,7 @@ class GetUserTypes(Resource):
     def get(self):
         user_types = UserType.query.all()
         return jsonify([{
-            'id': type.id,
+            'id': encode_str(type.id),
             'name': type.typename,
             'description': type.description,
         } for type in user_types])
@@ -88,13 +99,13 @@ class GetSitesView(Resource):
             employee_sites = site_data.get("employee_sites")
             if admin_sites:
                 return jsonify([{
-                    'id': type.id,
+                    'id': encode_str(type.id),
                     'sitename': type.sitename,
                     'address': type.address,
                 } for type in admin_sites])
             else:
                 return jsonify([{
-                    'id': type.id,
+                    'id': encode_str(type.id),
                     'sitename': type.sitename,
                     'address': type.address,
                 } for type in employee_sites])
@@ -112,7 +123,7 @@ class GetEmployeeView(Resource):
             site_data = site_serializer.load(data)
             result = Employee.query.filter_by(site_info_id=site_data.get("site_info_id"))
             return jsonify([{
-                'id': type.id,
+                'id': encode_str(type.id),
                 'user_id': type.user_id,
                 'site_info_id': type.site_info_id,
             } for type in result])
@@ -237,7 +248,20 @@ class InsertCityView(Resource):
 class MakeSuperviserView(Resource):
     @jwt_required()
     def post(self):
-        return "makeSuperviserView"
+        data = request.get_json()
+        site_serializer = MakeSuperviserSerializer()
+        try:
+            user_type_data = site_serializer.load(data)
+            user = user_type_data.get("user")
+            password = user_type_data.get("password")
+
+            user.set_password(password)
+            user.usertype_id = User_Type_id.SUPERVISER.value
+            db.session.commit()
+
+            return make_response(jsonify({"message": "User changed to superuser"}), 200)
+        except ValidationError as err:
+            return make_response(jsonify({"error": err.messages}), 400)
 
 
 @api.route('/mark-attendance/')
